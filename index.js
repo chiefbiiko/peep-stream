@@ -1,18 +1,29 @@
 var { Transform } = require('stream')
+var { inherits, isDate, isString } = require('util')
+var { datify, timify } = require('./datetimify')
 
 var BUF419 = Buffer.from([ 0, 4, 1, 9, 4, 1, 9, 0 ])
 
-function PeepWriter (opts) {
-  if (!(this instanceof PeepWriter)) return new PeepWriter(opts)
+function PeepWriter (file, opts) {
+  if (!(this instanceof PeepWriter)) return new PeepWriter(file, opts)
   Transform.call(this, opts)
+  if (typeof file === 'object') {
+    opts = file
+    file = null
+  }
   this._opts = Object.assign({ delimiter: BUF419 }, opts || {})
   if (global) {
     var { createWriteStream, existsSync, mkdirSync } = require('fs')
-    if (!this._opts.dump) {
+    var { join } = require('path')
+    if (!file) {
+      var now = Date.now()
+      var today = datify(now).replace(/[-]/g, '_')
+      var totime = timify(now).replace(/[:.]/g, '_')
       if (!existsSync('./peep')) mkdirSync('./peep')
-      this._opts.dump = join('./peep', new Date().toISOString() + '.peep')
+      if (!existsSync(join('./peep', today))) mkdirSync(join('./peep', today))
+      file = join('./peep', today, totime + '.peep')
     }
-    this._stdout = createWriteStream(this._opts.dump)
+    this._stdout = createWriteStream(file)
   } else if (window) {
     var websocket = require('websocket-stream')
     this._opts = Object.assign({ port: 41900 }, this._opts)
@@ -40,17 +51,14 @@ PeepWriter.prototype._flush = function flush (end) {
   end()
 }
 
-function createPeepReadStream (opts) {
+function createPeepReadStream (file, opts) {
   var { createReadStream } = require('fs')
   var choppa = require('chop-delimited-stream')
   var pump = require('pump') // maybe multipipe
   opts = Object.assign({ delimiter: BUF419 }, opts || {})
-  if (!opts.file) {
-    // search for .peep files in cwd and ./peep
-
-  }
+  if (typeof file !== 'string') throw new TypeError('file is not a string')
   // return a readable object stream that pushes { timestamp, chunk }
-  var readStream = createReadStream(opts.file)
+  var readStream = createReadStream(file)
   var chopStream = choppa(opts.delimiter)
   var glueStream = new Transform({
     readableObjectMode: true,

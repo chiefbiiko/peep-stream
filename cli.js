@@ -1,3 +1,5 @@
+// TODO: peep listen, diff.resize
+
 var diff = require('ansi-diff')({ width: process.stdout.columns })
 
 var argv = require('minimist')(process.argv.slice(2))
@@ -11,6 +13,12 @@ var HELP = 'Usage: peep replay FILE | peep listen [PORT] [FILE]\n\n' +
 
 var BUF419 = Buffer.from([ 0, 4, 1, 9, 4, 1, 9, 0 ])
 
+function datify (timestamp) {
+  var date = new Date(timestamp)
+  var millis = date.getMilliseconds()
+  return date.toString().slice(0, 24) + '.' + millis
+}
+
 function spacify (hexs) {
   for (var s = '', i = 0; i < hexs.length; i++) {
     if (i % 2 === 0 && i !== 0) s += ' '
@@ -21,7 +29,7 @@ function spacify (hexs) {
 
 function ondata (pac) {
   process.stdout.write(diff.update(
-    'timestamp: ' + pac.timestamp + '\n' +
+    'datetime: ' + datify(pac.timestamp) + '\n' +
     'chunk: ' + spacify(pac.chunk.toString('hex')) + '\n'
   ))
 }

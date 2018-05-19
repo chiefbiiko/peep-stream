@@ -1,0 +1,31 @@
+{
+  "name": "peep-stream",
+  "version": "0.0.0",
+  "description": "a passthru that lets you peep into streams",
+  "main": "index.js",
+  "scripts": {
+    "test": "tape test.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/chiefbiiko/peep-stream.git"
+  },
+  "keywords": [
+    "peep",
+    "stream",
+    "debug"
+  ],
+  "author": "Noah Anabiik Schwarz",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/chiefbiiko/peep-stream/issues"
+  },
+  "homepage": "https://github.com/chiefbiiko/peep-stream#readme",
+  "devDependencies": {
+    "tape": "^4.9.0"
+  },
+  "dependencies": {
+    "chop-delimited-stream": "0.0.0",
+    "minimist": "^1.2.0"
+  }
+}

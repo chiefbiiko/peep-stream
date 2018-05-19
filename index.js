@@ -1,30 +1,56 @@
-var Transform = require('stream').Transform
+var { Transform } = require('stream')
+var { createReadStream } = require('fs')
+var choppa = require('chop-delimited-stream')
+var pump = require('pump')
 
 var BUF419 = Buffer.from([ 0, 4, 1, 9, 4, 1, 9, 0 ])
 
-function Peep (dump, opts) {
-  if (!(this instanceof Peep)) return new Peep(dump, opts)
-  Transform.call(this)
-  this._delimiter = opts.delimiter || BUF419
+function PeepWriter (opts) {
+  if (!(this instanceof PeepWriter)) return new PeepWriter(opts)
+  Transform.call(this, opts)
+  this._opts = Object.assign({ delimiter: BUF419 }, opts || {})
   if (global) {
-    dump = dump || new Date().toISOString() + '.peep'
-    this._dump = require('fs').createWriteStream(dump)
+    var { createWriteStream, existsSync, mkdirSync } = require('fs')
+    if (!this._opts.dump) {
+      if (!existsSync('./peep')) mkdirSync('./peep')
+      this._opts.dump = join('./peep', new Date().toISOString() + '.peep')
+    }
+    this._stdout = createWriteStream(this._opts.dump)
   } else if (window) {
-    this._dump = require('websocket-stream')('ws://localhost:41900')
+    var websocket = require('websocket-stream')
+    this._opts = Object.assign({ port: 41900 }, this._opts)
+    this._stdout = websocket('ws://localhost:' + this._opts.port)
   } else {
     throw new Error('unknown context')
   }
 }
 
-inherits(Peep, Transform)
+inherits(PeepWriter, Transform)
 
-Peep.prototype._transform = function transform (chunk, _, next) {
+PeepWriter.prototype._transform = function transform (chunk, _, next) {
   this.push(chunk)
-  var ts = Buffer.alloc(8)
-  ts.writeDoubleBE(Date.now(), 0)
-  // ... write
-
+  var pac = Buffer.alloc(8 + chunk.length + 2 * this._opts.delimiter.length)
+  pac.writeDoubleBE(Date.now(), 0) // 8-byte timestamp
+  this._opts.delimiter.copy(pac, 8)
+  chunk.copy(pac, 8 + this._opts.delimiter.length)
+  this._opts.delimiter.copy(pac, 8 + this._opts.delimiter.length + chunk.length)
+  this._stdout.write(pac)
   next()
 }
 
-module.exports = Peep
+PeepWriter.prototype._flush = function flush (end) {
+  this._stdout.end()
+  end()
+}
+
+function createPeepReadStream (opts) {
+  opts = Object.assign({ delimiter: BUF419 }, opts || {})
+  if (!opts.file) {
+    // search for .peep files in cwd and ./peep
+    
+  }
+  // return a readable object stream that pushes { ts, chunk }
+
+}
+
+module.exports = { createPeepWriteStream: PeepWriter, createPeepReadStream }

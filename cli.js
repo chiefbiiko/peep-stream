@@ -12,7 +12,11 @@ var HELP = 'Usage: peep replay FILE | peep listen [PORT] [FILE]\n\n' +
 var BUF419 = Buffer.from([ 0, 4, 1, 9, 4, 1, 9, 0 ])
 
 function spacify (hexs) {
-  for (var i = 0; i <)
+  for (var s = '', i = 0; i < hexs.length; i++) {
+    if (i % 2 === 0 && i !== 0) s += ' '
+    s += hexs[i]
+  }
+  return s
 }
 
 function ondata (pac) {

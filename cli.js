@@ -6,6 +6,7 @@ var pump = require('pump')
 /* TODO:
   + switch 2 get-opts or similar!
   + check node cli dashboard solutions that allow user input 4 nice replay
+    -- mafintosh/neat-input
   + peep replay
   + peep listen
   + diff.resize

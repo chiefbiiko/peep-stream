@@ -28,6 +28,8 @@
     "ansi-diff": "^1.1.0",
     "chop-delimited-stream": "0.0.0",
     "minimist": "^1.2.0",
+    "neat-input": "^1.6.0",
+    "node-getopt": "^0.3.2",
     "pump": "^3.0.0",
     "websocket-stream": "^5.1.2"
   }
